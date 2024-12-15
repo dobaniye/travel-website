@@ -151,18 +151,18 @@ export default function Home() {
             {[
               {
                 icon: <CreditCard className="w-8 h-8" />,
-                title: "Credit Card Optimization",
+                title: "Credit Card Portfolio Management",
                 description: "Strategic credit card portfolio management for maximum lifestyle benefits and rewards."
               },
               {
                 icon: <Globe className="w-8 h-8" />,
-                title: "Luxury Travel Planning",
-                description: "Bespoke travel experiences and exclusive access to premium destinations worldwide."
+                title: "Credit Card Points Redemption",
+                description: "Great deals and hacks to maximize reapoing rewards from Credit Cards goldmine."
               },
               {
                 icon: <Star className="w-8 h-8" />,
-                title: "Lifestyle Consulting",
-                description: "Personalized guidance for elevating your lifestyle through strategic financial choices."
+                title: "Trip/Itinerary planning",
+                description: "Bespoke travel experiences and exclusive access to premium destinations worldwide."
               }
             ].map((service, index) => (
               <div key={index} className="bg-black border border-[#C4A484] p-8 hover:bg-[#C4A484]/10 transition-all duration-300">
