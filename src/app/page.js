@@ -234,13 +234,13 @@ export default function Home() {
                 notionLink: "https://your-notion-page-1-url"
               },
               {
-                image: "travel-2.jpg",
+                image: "travel-1.jpg",
                 title: "Maximizing Luxury Travel",
                 description: "Strategic approaches to elevate your travel experiences.",
                 notionLink: "https://your-notion-page-2-url"
               },
               {
-                image: "travel-3.jpg",
+                image: "travel-1.jpg",
                 title: "Lifestyle Optimization",
                 description: "Expert tips for maintaining a premium lifestyle through smart choices.",
                 notionLink: "https://your-notion-page-3-url"
