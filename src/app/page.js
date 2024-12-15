@@ -231,19 +231,19 @@ export default function Home() {
                 image: "travel-1.jpg",
                 title: "Premium Credit Cards Guide 2024",
                 description: "Exclusive insights into the most rewarding premium credit cards.",
-                notionLink: "https://your-notion-page-1-url"
+                notionLink: "https://x.com/DoBaniye/status/1856969483539419565"
               },
               {
                 image: "travel-1.jpg",
                 title: "Maximizing Luxury Travel",
                 description: "Strategic approaches to elevate your travel experiences.",
-                notionLink: "https://your-notion-page-2-url"
+                notionLink: "https://x.com/DoBaniye/status/1856969483539419565"
               },
               {
                 image: "travel-1.jpg",
                 title: "Lifestyle Optimization",
                 description: "Expert tips for maintaining a premium lifestyle through smart choices.",
-                notionLink: "https://your-notion-page-3-url"
+                notionLink: "https://x.com/DoBaniye/status/1856969483539419565"
               }
             ].map((post, index) => (
               <a 
