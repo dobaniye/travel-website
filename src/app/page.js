@@ -349,7 +349,7 @@ export default function Home() {
     </div>
     
     <div className="border-t border-[#C4A484]/20 pt-8 text-center text-white/60">
-      <p>&copy; 2024 Do Baniye. All rights reserved.</p>
+      <p>&copy; 2025 Do Baniye. All rights reserved.</p>
     </div>
   </div>
 </footer>
