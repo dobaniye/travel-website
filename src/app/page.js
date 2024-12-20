@@ -1,11 +1,41 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { createClient } from '@supabase/supabase-js';
 import { CreditCard, Compass, Globe, DollarSign, ArrowUpRight, Star, TrendingUp, Map, Users, Calendar, ChevronRight } from 'lucide-react';
 
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+);
+
 export default function Home() {
+  const [blogPosts, setBlogPosts] = useState([]);
+
   const scrollToSection = (id) => {
     document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    fetchBlogPosts();
+  }, []);
+
+  async function fetchBlogPosts() {
+    try {
+      const { data, error } = await supabase
+        .from('blog_posts')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      setBlogPosts(data || []);
+    } catch (error) {
+      console.error('Error fetching blog posts:', error);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-black">
@@ -183,7 +213,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
       {/* About Section */}
       <section id="about" className="py-24 bg-[#0A0A0A]">
         <div className="max-w-7xl mx-auto px-6">
@@ -224,55 +253,91 @@ export default function Home() {
       {/* Blog Section */}
       <section id="blog" className="py-24">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-4xl font-bold text-[#C4A484] mb-16 text-center">Latest Insights</h2>
+          <div className="flex justify-between items-center mb-16">
+            <h2 className="text-4xl font-bold text-[#C4A484]">Latest Insights</h2>
+            <Link 
+              href="/blog"
+              className="inline-flex items-center text-[#C4A484] hover:text-white transition-colors"
+            >
+              <span>View All Posts</span>
+              <ArrowUpRight className="w-4 h-4 ml-1" />
+            </Link>
+          </div>
           <div className="grid md:grid-cols-3 gap-8">
-            {[
-              {
-                image: "travel-1.jpg",
-                title: "Premium Credit Cards Guide 2024",
-                description: "Exclusive insights into the most rewarding premium credit cards.",
-                notionLink: "https://x.com/DoBaniye/status/1856969483539419565"
-              },
-              {
-                image: "travel-1.jpg",
-                title: "Maximizing Luxury Travel",
-                description: "Strategic approaches to elevate your travel experiences.",
-                notionLink: "https://x.com/DoBaniye/status/1856969483539419565"
-              },
-              {
-                image: "travel-1.jpg",
-                title: "Lifestyle Optimization",
-                description: "Expert tips for maintaining a premium lifestyle through smart choices.",
-                notionLink: "https://x.com/DoBaniye/status/1856969483539419565"
-              }
-            ].map((post, index) => (
-              <a 
-                key={index} 
-                href={post.notionLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border border-[#C4A484] group hover:scale-105 transition-all duration-300"
-              >
-                <div className="relative h-48">
-                  <img
-                    src={`/images/${post.image}`}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                </div>
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#C4A484] transition-colors">
-                    {post.title}
-                  </h3>
-                  <p className="text-white/80 mb-4">{post.description}</p>
-                  <div className="inline-flex items-center text-[#C4A484] group-hover:text-white transition-colors">
-                    <span>Read More</span>
-                    <ArrowUpRight className="w-4 h-4 ml-1" />
+            {blogPosts.length > 0 ? (
+              blogPosts.map((post) => (
+                <Link 
+                  key={post.id}
+                  href={`/blog/${post.slug}`}
+                  className="border border-[#C4A484] group hover:scale-105 transition-all duration-300"
+                >
+                  <div className="relative h-48">
+                    <img
+                      src={post.cover_image || '/images/travel-1.jpg'}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#C4A484] transition-colors">
+                      {post.title}
+                    </h3>
+                    <p className="text-white/80 mb-4">{post.excerpt}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[#C4A484]/80 text-sm">
+                        {new Date(post.created_at).toLocaleDateString()}
+                      </span>
+                      <div className="inline-flex items-center text-[#C4A484] group-hover:text-white transition-colors">
+                        <span>Read More</span>
+                        <ArrowUpRight className="w-4 h-4 ml-1" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))
+            ) : (
+              [
+                {
+                  image: "travel-1.jpg",
+                  title: "Premium Credit Cards Guide 2024",
+                  description: "Exclusive insights into the most rewarding premium credit cards."
+                },
+                {
+                  image: "travel-1.jpg",
+                  title: "Maximizing Luxury Travel",
+                  description: "Strategic approaches to elevate your travel experiences."
+                },
+                {
+                  image: "travel-1.jpg",
+                  title: "Lifestyle Optimization",
+                  description: "Expert tips for maintaining a premium lifestyle through smart choices."
+                }
+              ].map((post, index) => (
+                <div 
+                  key={index}
+                  className="border border-[#C4A484] group"
+                >
+                  <div className="relative h-48">
+                    <img
+                      src={`/images/${post.image}`}
+                      alt={post.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                  </div>
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold text-white mb-3">
+                      {post.title}
+                    </h3>
+                    <p className="text-white/80 mb-4">{post.description}</p>
+                    <div className="inline-flex items-center text-[#C4A484]">
+                      <span>Coming Soon</span>
+                    </div>
                   </div>
                 </div>
-              </a>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -302,58 +367,57 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-<footer className="py-12 bg-black border-t border-[#C4A484]/20">
-  <div className="max-w-7xl mx-auto px-6">
-    <div className="grid md:grid-cols-2 gap-8 mb-12">
-      <div>
-        <div className="flex items-center space-x-3 mb-4">
-          <img 
-            src="/images/do-baniye-logo.png" 
-            alt="Do Baniye" 
-            className="h-12 w-auto"
-          />
-          <div className="flex flex-col">
-            <span className="text-xl font-semibold text-[#C4A484]">DO BANIYE</span>
-            <span className="text-xs tracking-wider text-[#C4A484]/80">CREDIT CARDS. TRAVEL. LIFESTYLE</span>
+      <footer className="py-12 bg-black border-t border-[#C4A484]/20">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <div>
+              <div className="flex items-center space-x-3 mb-4">
+                <img 
+                  src="/images/do-baniye-logo.png" 
+                  alt="Do Baniye" 
+                  className="h-12 w-auto"
+                />
+                <div className="flex flex-col">
+                  <span className="text-xl font-semibold text-[#C4A484]">DO BANIYE</span>
+                  <span className="text-xs tracking-wider text-[#C4A484]/80">CREDIT CARDS. TRAVEL. LIFESTYLE</span>
+                </div>
+              </div>
+              <p className="text-white/80">
+                Elevating lifestyles through strategic financial choices.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-[#C4A484] font-semibold mb-4">Contact</h3>
+              <div className="space-y-3">
+                <a 
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSfCPfI5Cv_X0sIgjNQ49EtR3Y2znuubtqIviwwWbDjNc-S1wg/viewform"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-white/80 hover:text-[#C4A484] transition-colors"
+                >
+                  Schedule Consultation
+                </a>
+                <a 
+                  href="https://x.com/dobaniye"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-white/80 hover:text-[#C4A484] transition-colors flex items-center"
+                >
+                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
+                  </svg>
+                  @dobaniye
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-[#C4A484]/20 pt-8 text-center text-white/60">
+            <p>&copy; {new Date().getFullYear()} Do Baniye. All rights reserved.</p>
           </div>
         </div>
-        <p className="text-white/80">
-          Elevating lifestyles through strategic financial choices.
-        </p>
-      </div>
-
-      <div>
-        <h3 className="text-[#C4A484] font-semibold mb-4">Contact</h3>
-        <div className="space-y-3">
-          <a 
-            href="https://docs.google.com/forms/d/e/1FAIpQLSfCPfI5Cv_X0sIgjNQ49EtR3Y2znuubtqIviwwWbDjNc-S1wg/viewform"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-white/80 hover:text-[#C4A484] transition-colors"
-          >
-            Schedule Consultation
-          </a>
-          <a 
-            href="https://x.com/dobaniye"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block text-white/80 hover:text-[#C4A484] transition-colors flex items-center"
-          >
-            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path>
-            </svg>
-            @dobaniye
-          </a>
-        </div>
-      </div>
+      </footer>
     </div>
-    
-    <div className="border-t border-[#C4A484]/20 pt-8 text-center text-white/60">
-      <p>&copy; 2025 Do Baniye. All rights reserved.</p>
-    </div>
-  </div>
-</footer>
-
-        </div>
   );
 }
