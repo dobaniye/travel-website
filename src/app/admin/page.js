@@ -11,13 +11,18 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
   const ADMIN_PASSWORD = 'dobaniye123';
 
   useEffect(() => {
-    if (isAuthenticated && supabase) {
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && isClient) {
       fetchPosts();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isClient]);
 
   async function fetchPosts() {
     try {
@@ -27,7 +32,10 @@ export default function AdminPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       setPosts(data || []);
     } catch (error) {
       console.error('Error:', error);
@@ -38,19 +46,25 @@ export default function AdminPage() {
   }
 
   async function deletePost(id) {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      try {
-        const { error } = await supabase
-          .from('blog_posts')
-          .delete()
-          .eq('id', id);
+    if (!window.confirm('Are you sure you want to delete this post?')) {
+      return;
+    }
 
-        if (error) throw error;
-        fetchPosts();
-      } catch (error) {
-        console.error('Error:', error);
-        alert('Error deleting post. Please try again.');
+    try {
+      const { error } = await supabase
+        .from('blog_posts')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
       }
+
+      await fetchPosts();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error deleting post. Please try again.');
     }
   }
 
@@ -58,9 +72,26 @@ export default function AdminPage() {
     e.preventDefault();
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
+      localStorage.setItem('isAdminAuthenticated', 'true');
     } else {
       alert('Invalid password');
     }
+  }
+
+  // Check for existing authentication
+  useEffect(() => {
+    const isAuth = localStorage.getItem('isAdminAuthenticated');
+    if (isAuth === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-[#C4A484] text-xl">Loading...</div>
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

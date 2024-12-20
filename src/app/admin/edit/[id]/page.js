@@ -1,20 +1,16 @@
-// src/app/admin/new/page.js (or edit/[id]/page.js)
+// src/app/admin/new/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Plus, X, ArrowUp, ArrowDown, Image as ImageIcon, Type, Heading } from 'lucide-react';
 import Link from 'next/link';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+import supabase from '@/lib/supabase/client';
 
 export default function BlogForm() {
   const router = useRouter();
   const params = useParams();
+  const [isClient, setIsClient] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -25,10 +21,19 @@ export default function BlogForm() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (params?.id) {
+    setIsClient(true);
+    // Check if user is authenticated
+    const isAuth = localStorage.getItem('isAdminAuthenticated');
+    if (!isAuth) {
+      router.push('/admin');
+    }
+  }, []);
+
+  useEffect(() => {
+    if (params?.id && isClient) {
       fetchPost(params.id);
     }
-  }, [params?.id]);
+  }, [params?.id, isClient]);
 
   async function fetchPost(id) {
     try {
@@ -45,6 +50,7 @@ export default function BlogForm() {
       });
     } catch (error) {
       console.error('Error:', error);
+      alert('Error fetching post. Please try again.');
     }
   }
 
@@ -140,10 +146,18 @@ export default function BlogForm() {
       router.push('/admin');
     } catch (error) {
       console.error('Error:', error);
-      alert('Error saving post');
+      alert('Error saving post. Please try again.');
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (!isClient) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-[#C4A484] text-xl">Loading...</div>
+      </div>
+    );
   }
 
   const renderContentBlock = (block, index) => {
@@ -254,7 +268,6 @@ export default function BlogForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Post Information */}
           <div>
             <label className="block text-[#C4A484] mb-2">Title</label>
             <input
@@ -302,7 +315,6 @@ export default function BlogForm() {
             />
           </div>
 
-          {/* Content Blocks */}
           <div>
             <label className="block text-[#C4A484] mb-4">Content Blocks</label>
             
