@@ -1,25 +1,30 @@
-// src/app/blog/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { ArrowUpRight, ChevronLeft } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 export default function BlogPage() {
   const [posts, setPosts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    fetchPosts();
+    setIsClient(true);
   }, []);
 
-  async function fetchPosts() {
+  useEffect(() => {
+    if (isClient) {
+      const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+      fetchPosts(supabase);
+    }
+  }, [isClient]);
+
+  async function fetchPosts(supabase) {
     try {
       const { data, error } = await supabase
         .from('blog_posts')
@@ -30,7 +35,17 @@ export default function BlogPage() {
       setPosts(data || []);
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
     }
+  }
+
+  if (!isClient || isLoading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-[#C4A484] text-xl">Loading...</div>
+      </div>
+    );
   }
 
   return (
@@ -68,37 +83,43 @@ export default function BlogPage() {
         <h1 className="text-4xl font-bold text-[#C4A484] mb-16">Latest Blog Posts</h1>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {posts.map((post) => (
-            <Link 
-              key={post.id} 
-              href={`/blog/${post.slug}`}
-              className="border border-[#C4A484] group hover:scale-105 transition-all duration-300"
-            >
-              <div className="relative h-48">
-                <img
-                  src={post.cover_image || '/images/travel-1.jpg'}
-                  alt={post.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-              </div>
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#C4A484] transition-colors">
-                  {post.title}
-                </h3>
-                <p className="text-white/80 mb-4">{post.excerpt}</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#C4A484]/80 text-sm">
-                    {new Date(post.created_at).toLocaleDateString()}
-                  </span>
-                  <div className="inline-flex items-center text-[#C4A484] group-hover:text-white transition-colors">
-                    <span>Read More</span>
-                    <ArrowUpRight className="w-4 h-4 ml-1" />
+          {posts.length === 0 ? (
+            <div className="col-span-3 text-center py-12 border border-[#C4A484] border-dashed">
+              <p className="text-white/80">No blog posts yet</p>
+            </div>
+          ) : (
+            posts.map((post) => (
+              <Link 
+                key={post.id} 
+                href={`/blog/${post.slug}`}
+                className="border border-[#C4A484] group hover:scale-105 transition-all duration-300"
+              >
+                <div className="relative h-48">
+                  <img
+                    src={post.cover_image || '/images/travel-1.jpg'}
+                    alt={post.title}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                </div>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#C4A484] transition-colors">
+                    {post.title}
+                  </h3>
+                  <p className="text-white/80 mb-4">{post.excerpt}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-[#C4A484]/80 text-sm">
+                      {new Date(post.created_at).toLocaleDateString()}
+                    </span>
+                    <div className="inline-flex items-center text-[#C4A484] group-hover:text-white transition-colors">
+                      <span>Read More</span>
+                      <ArrowUpRight className="w-4 h-4 ml-1" />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))
+          )}
         </div>
       </div>
 
