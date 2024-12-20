@@ -1,39 +1,42 @@
-// src/app/admin/new/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { ArrowLeft, Plus, X, ArrowUp, ArrowDown, Image as ImageIcon, Type, Heading } from 'lucide-react';
 import Link from 'next/link';
-import supabase from '@/lib/supabase/client';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 export default function BlogForm() {
   const router = useRouter();
   const params = useParams();
   const [isClient, setIsClient] = useState(false);
+  const [supabase, setSupabase] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
     excerpt: '',
     cover_image: '/images/travel-1.jpg',
-    content_blocks: [] // Array of content blocks
+    content_blocks: []
   });
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
-    // Check if user is authenticated
-    const isAuth = localStorage.getItem('isAdminAuthenticated');
-    if (!isAuth) {
-      router.push('/admin');
+    if (typeof window !== 'undefined') {
+      const isAuth = localStorage.getItem('isAdminAuthenticated');
+      if (!isAuth) {
+        router.push('/admin');
+        return;
+      }
+      setSupabase(createSupabaseClient());
     }
   }, []);
 
   useEffect(() => {
-    if (params?.id && isClient) {
+    if (params?.id && isClient && supabase) {
       fetchPost(params.id);
     }
-  }, [params?.id, isClient]);
+  }, [params?.id, isClient, supabase]);
 
   async function fetchPost(id) {
     try {
@@ -120,6 +123,11 @@ export default function BlogForm() {
 
   async function handleSubmit(e) {
     e.preventDefault();
+    if (!supabase) {
+      alert('Error: No database connection');
+      return;
+    }
+    
     setIsLoading(true);
 
     try {

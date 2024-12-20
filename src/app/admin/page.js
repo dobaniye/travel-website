@@ -1,10 +1,9 @@
-// src/app/admin/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
 import { ArrowUpRight, Edit, Trash, Plus } from 'lucide-react';
 import Link from 'next/link';
-import supabase from '@/lib/supabase/client';
+import { createSupabaseClient } from '@/lib/supabase/client';
 
 export default function AdminPage() {
   const [posts, setPosts] = useState([]);
@@ -12,17 +11,25 @@ export default function AdminPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isClient, setIsClient] = useState(false);
+  const [supabase, setSupabase] = useState(null);
   const ADMIN_PASSWORD = 'dobaniye123';
 
   useEffect(() => {
     setIsClient(true);
+    if (typeof window !== 'undefined') {
+      setSupabase(createSupabaseClient());
+      const isAuth = localStorage.getItem('isAdminAuthenticated');
+      if (isAuth === 'true') {
+        setIsAuthenticated(true);
+      }
+    }
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated && isClient) {
+    if (isAuthenticated && supabase && isClient) {
       fetchPosts();
     }
-  }, [isAuthenticated, isClient]);
+  }, [isAuthenticated, supabase, isClient]);
 
   async function fetchPosts() {
     try {
@@ -32,10 +39,7 @@ export default function AdminPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
       setPosts(data || []);
     } catch (error) {
       console.error('Error:', error);
@@ -56,11 +60,7 @@ export default function AdminPage() {
         .delete()
         .eq('id', id);
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       await fetchPosts();
     } catch (error) {
       console.error('Error:', error);
@@ -77,14 +77,6 @@ export default function AdminPage() {
       alert('Invalid password');
     }
   }
-
-  // Check for existing authentication
-  useEffect(() => {
-    const isAuth = localStorage.getItem('isAdminAuthenticated');
-    if (isAuth === 'true') {
-      setIsAuthenticated(true);
-    }
-  }, []);
 
   if (!isClient) {
     return (
