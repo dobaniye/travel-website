@@ -414,10 +414,11 @@ export default function Home() {
           </div>
           
           <div className="border-t border-[#C4A484]/20 pt-8 text-center text-white/60">
-            <p>&copy; {new Date().getFullYear()} Do Baniye. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Do Baniye. All rights reserved. Made with love</p>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+
